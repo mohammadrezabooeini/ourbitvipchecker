@@ -26,6 +26,11 @@ from services.channel import (
 from services.admin import broadcast_copy, refresh_all_vip_balances
 from services.excel_export import build_vip_excel
 from services.ourbit_api import ourbit, validate_uid
+from services.trading_report import (
+    format_decimal,
+    get_trading_report,
+    parse_date_range,
+)
 from services.vip_rules import is_insufficient_balance
 
 admin_router = Router(name="admin")
@@ -40,6 +45,8 @@ class AdminStates(StatesGroup):
     waiting_add = State()
     waiting_remove = State()
     confirm_remove = State()
+    waiting_volume_user = State()
+    waiting_volume_dates = State()
 
 
 @admin_router.message(Command("admin"))
@@ -57,6 +64,21 @@ async def open_admin_panel(
 def _value(row: Any, key: str, default: Any = "-") -> Any:
     value = row[key]
     return default if value is None or value == "" else value
+
+
+def _format_market_rows(values: Any) -> str:
+    if not values:
+        return msg.ADMIN_VOLUME_EMPTY
+
+    items = sorted(values.items())
+    visible = items[:40]
+    lines = [
+        f"{symbol}: {format_decimal(amount)}"
+        for symbol, amount in visible
+    ]
+    if len(items) > len(visible):
+        lines.append(f"... و {len(items) - len(visible)} مورد دیگر")
+    return "\n".join(lines)
 
 
 async def _send_line_chunks(
@@ -516,6 +538,97 @@ async def admin_export_excel(call: CallbackQuery) -> None:
     except Exception:
         logger.exception("Admin Excel export error")
         await call.message.answer(msg.ERROR_GENERIC)
+
+
+@admin_router.callback_query(F.data == "admin:volume")
+async def admin_volume_start(
+    call: CallbackQuery,
+    state: FSMContext,
+) -> None:
+    await state.set_state(AdminStates.waiting_volume_user)
+    await call.message.answer(
+        msg.ADMIN_VOLUME_USER_PROMPT,
+        reply_markup=admin_back_keyboard(),
+    )
+    await call.answer()
+
+
+@admin_router.message(AdminStates.waiting_volume_user)
+async def admin_volume_user(
+    message: Message,
+    state: FSMContext,
+) -> None:
+    identifier = (message.text or "").strip()
+    if not identifier.isdigit():
+        await message.answer(msg.ADMIN_VOLUME_USER_PROMPT)
+        return
+
+    user = await db.find_user(identifier)
+    if user is None:
+        await message.answer(
+            msg.ADMIN_USER_NOT_FOUND,
+            reply_markup=admin_back_keyboard(),
+        )
+        await state.clear()
+        return
+
+    await state.update_data(volume_uid=user["ourbit_uid"])
+    await state.set_state(AdminStates.waiting_volume_dates)
+    await message.answer(
+        msg.ADMIN_VOLUME_DATE_PROMPT,
+        reply_markup=admin_back_keyboard(),
+    )
+
+
+@admin_router.message(AdminStates.waiting_volume_dates)
+async def admin_volume_dates(
+    message: Message,
+    state: FSMContext,
+) -> None:
+    try:
+        date_range = parse_date_range((message.text or "").strip())
+    except ValueError:
+        await message.answer(msg.ADMIN_VOLUME_DATE_INVALID)
+        return
+
+    data = await state.get_data()
+    uid = data.get("volume_uid")
+    if not uid:
+        await state.clear()
+        await message.answer(msg.ERROR_GENERIC)
+        return
+
+    progress = await message.answer(msg.ADMIN_VOLUME_LOADING)
+    try:
+        report = await get_trading_report(str(uid), date_range)
+        await progress.edit_text(
+            msg.ADMIN_VOLUME_REPORT.format(
+                uid=uid,
+                start_date=date_range.start_label,
+                end_date=date_range.end_label,
+                spot_details=_format_market_rows(
+                    report.spot_by_symbol
+                ),
+                futures_details=_format_market_rows(
+                    report.futures_by_symbol
+                ),
+                futures_total=format_decimal(
+                    report.futures_total_usdt
+                ),
+                effective_volume=format_decimal(
+                    report.effective_volume_usdt
+                ),
+                commission=format_decimal(
+                    report.commission_usdt
+                ),
+            ),
+            reply_markup=admin_back_keyboard(),
+        )
+    except Exception:
+        logger.exception("Admin trading volume report error")
+        await progress.edit_text(msg.ERROR_GENERIC)
+    finally:
+        await state.clear()
 
 
 @admin_router.callback_query(F.data == "admin:broadcast")

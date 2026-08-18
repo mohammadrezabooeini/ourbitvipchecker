@@ -2,7 +2,7 @@ import hashlib
 import hmac
 import json
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import aiohttp
 
@@ -152,6 +152,61 @@ class OurbitAPI:
             "success": True,
             "balance": result["balance"],
         }
+
+    async def _get_agent_rows(
+        self,
+        endpoint: str,
+        payload: Dict[str, Any],
+    ) -> List[Dict[str, Any]]:
+        data = await self._post(endpoint, payload)
+        if data.get("success") is not True:
+            raise RuntimeError(
+                f"Ourbit agent API failed with code={data.get('code')}"
+            )
+
+        rows = data.get("data") or []
+        if not isinstance(rows, list):
+            raise RuntimeError("Unexpected Ourbit agent API response.")
+        return [
+            row
+            for row in rows
+            if isinstance(row, dict)
+        ]
+
+    async def get_trading_volume(
+        self,
+        uid: str,
+        market_type: str,
+        start_time: int,
+        end_time: int,
+    ) -> List[Dict[str, Any]]:
+        if market_type not in {"spot", "swap"}:
+            raise ValueError("market_type must be 'spot' or 'swap'.")
+
+        return await self._get_agent_rows(
+            "/api/v1/private/agent/subordinates/tradeVolume",
+            {
+                "uids": [str(uid)],
+                "type": market_type,
+                "startTime": start_time,
+                "endTime": end_time,
+            },
+        )
+
+    async def get_commission_report(
+        self,
+        uid: str,
+        start_time: int,
+        end_time: int,
+    ) -> List[Dict[str, Any]]:
+        return await self._get_agent_rows(
+            "/api/v1/private/agent/subordinates/commission",
+            {
+                "uids": [str(uid)],
+                "startTime": start_time,
+                "endTime": end_time,
+            },
+        )
 
 
 ourbit = OurbitAPI()

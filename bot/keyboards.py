@@ -80,6 +80,10 @@ def admin_menu() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     text="📥 خروجی Excel",
                     callback_data="admin:export",
+                ),
+                InlineKeyboardButton(
+                    text="📈 حجم معاملات",
+                    callback_data="admin:volume",
                 )
             ],
             [

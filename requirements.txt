@@ -1,0 +1,6 @@
+aiogram==3.13.1
+aiohttp>=3.9.0,<3.11
+python-dotenv==1.2.3
+aiosqlite==0.22.1
+apscheduler==3.11.3
+openpyxl==3.1.5

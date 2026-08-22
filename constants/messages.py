@@ -17,7 +17,7 @@ WELCOME: str = (
 # UID
 # ──────────────────────────────
 
-ASK_UID: str = "🆔 لطفاً UID حساب Ourbit خود را ارسال کنید."
+ASK_UID: str = "\u202B🆔 لطفاً UID حساب Ourbit خود را ارسال کنید.\u202C"
 
 CHECKING: str = "⏳ در حال بررسی اطلاعات..."
 

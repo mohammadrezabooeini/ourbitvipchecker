@@ -1,9 +1,10 @@
 # Secrets and per-bot configuration
 .env
 .env.*
-!.env.example
+env.txt
 .env.txt
-env-*.txt
+
+!.env.example
 *.secret
 
 # Databases

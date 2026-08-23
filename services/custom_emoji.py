@@ -7,6 +7,9 @@ from aiogram.types import MessageEntity
 
 
 CUSTOM_EMOJI_IDS = {
+    "1️⃣": "5235776368905562305",
+    "2️⃣": "5237704680372447424",
+    "3️⃣": "5238044171767393675",
     "👋": "5472055112702629499",
     "⏳": "5451732530048802485",
     "❌": "5465665476971471368",
@@ -33,10 +36,22 @@ CUSTOM_EMOJI_IDS = {
 
 START_CUSTOM_EMOJI_ID = "6025887340180805506"
 START_CUSTOM_EMOJI_FALLBACK = "⭐"
+RTL_MARK = "\u200f"
 
 
 def _utf16_length(value: str) -> int:
     return len(value.encode("utf-16-le")) // 2
+
+
+def ensure_rtl(text: str) -> str:
+    return "\n".join(
+        (
+            line
+            if not line or line.startswith(RTL_MARK)
+            else f"{RTL_MARK}{line}"
+        )
+        for line in text.split("\n")
+    )
 
 
 def build_custom_emoji_entities(text: str) -> list[MessageEntity]:
@@ -93,13 +108,14 @@ class CustomEmojiMiddleware(BaseRequestMiddleware):
         if getattr(method, entities_field, None):
             return
 
-        entities = build_custom_emoji_entities(text)
-        if not entities:
-            return
+        text = ensure_rtl(text)
+        setattr(method, text_field, text)
 
-        setattr(method, entities_field, entities)
-        if hasattr(method, parse_mode_field):
-            setattr(method, parse_mode_field, None)
+        entities = build_custom_emoji_entities(text)
+        if entities:
+            setattr(method, entities_field, entities)
+            if hasattr(method, parse_mode_field):
+                setattr(method, parse_mode_field, None)
 
     async def __call__(
         self,

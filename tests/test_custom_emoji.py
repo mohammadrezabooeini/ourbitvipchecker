@@ -8,6 +8,7 @@ from services.custom_emoji import (
     START_CUSTOM_EMOJI_ID,
     CustomEmojiMiddleware,
     build_custom_emoji_entities,
+    ensure_rtl,
     start_custom_emoji_entity,
 )
 
@@ -35,6 +36,24 @@ class CustomEmojiEntityTest(unittest.TestCase):
 
     def test_uid_emoji_without_id_is_untouched(self):
         self.assertEqual(build_custom_emoji_entities("🆔 UID"), [])
+
+    def test_number_emojis_use_requested_ids(self):
+        entities = build_custom_emoji_entities("1️⃣ 2️⃣ 3️⃣")
+        self.assertEqual(
+            [entity.custom_emoji_id for entity in entities],
+            [
+                "5235776368905562305",
+                "5237704680372447424",
+                "5238044171767393675",
+            ],
+        )
+
+    def test_every_nonempty_line_is_right_to_left(self):
+        text = ensure_rtl("خط اول\n\nUID: 12345678")
+        lines = text.split("\n")
+        self.assertTrue(lines[0].startswith("\u200f"))
+        self.assertEqual(lines[1], "")
+        self.assertTrue(lines[2].startswith("\u200f"))
 
     def test_start_emoji_uses_requested_id(self):
         entity = start_custom_emoji_entity()
@@ -72,6 +91,16 @@ class CustomEmojiMiddlewareTest(unittest.IsolatedAsyncioTestCase):
 
         result = await middleware(make_request, None, method)
         self.assertEqual(result.entities, [start_entity])
+
+    async def test_plain_message_is_made_right_to_left(self):
+        method = SendMessage(chat_id=1, text="پیام بدون ایموجی")
+        middleware = CustomEmojiMiddleware()
+
+        async def make_request(bot, outgoing_method):
+            return outgoing_method
+
+        result = await middleware(make_request, None, method)
+        self.assertTrue(result.text.startswith("\u200f"))
 
 
 class CustomEmojiKeyboardTest(unittest.TestCase):

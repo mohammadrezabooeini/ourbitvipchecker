@@ -161,7 +161,12 @@ async def join_vip(call: CallbackQuery, state: FSMContext) -> None:
             return
 
         await state.set_state(JoinVIP.waiting_uid)
-        await call.message.answer(msg.ASK_UID)
+        await call.message.answer(
+            msg.ASK_UID.format(
+                register_link=REGISTER_LINK,
+                min_balance=MIN_BALANCE,
+            )
+        )
 
     except Exception:
         logger.exception("join_vip handler error")

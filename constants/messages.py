@@ -105,7 +105,7 @@ WARNING_TEXT: str = (
 # Status
 # ──────────────────────────────
 
-NOT_VIP: str = "❌ شما هنوز عضو VIP نیستید."
+NOT_VIP: str = "❌ شما هنوز عضو VIP نیستید. ❌"
 
 STATUS_INFO: str = (
     "👤 اطلاعات حساب\n\n"
@@ -135,8 +135,7 @@ BONUS_MSG: str = (
 # ──────────────────────────────
 
 SUPPORT_MSG: str = (
-    "☎️\n\n"
-    "ارتباط با پشتیبانی\n"
+    "ارتباط با پشتیبانی ☎️\n"
     "@{support_username}"
 )
 

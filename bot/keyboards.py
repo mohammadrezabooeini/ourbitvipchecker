@@ -3,18 +3,23 @@ from aiogram.types import (
     InlineKeyboardButton,
 )
 
+from config import REGISTER_LINK
 from services.custom_emoji import CUSTOM_EMOJI_IDS
 
 
 def _button(
     text: str,
     emoji: str,
-    callback_data: str,
+    callback_data: str | None = None,
+    url: str | None = None,
+    style: str | None = None,
 ) -> InlineKeyboardButton:
     return InlineKeyboardButton(
         text=text,
         callback_data=callback_data,
+        url=url,
         icon_custom_emoji_id=CUSTOM_EMOJI_IDS[emoji],
+        style=style,
     )
 
 
@@ -25,9 +30,10 @@ def main_menu() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 _button(
-                    text="عضویت رایگان VIP",
+                    text="عضویت",
                     emoji="⭐",
                     callback_data="join_vip",
+                    style="success",
                 )
             ],
             [
@@ -35,6 +41,7 @@ def main_menu() -> InlineKeyboardMarkup:
                     text="وضعیت حساب",
                     emoji="👤",
                     callback_data="status",
+                    style="success",
                 )
             ],
             [
@@ -42,20 +49,19 @@ def main_menu() -> InlineKeyboardMarkup:
                     text="بونس",
                     emoji="🎁",
                     callback_data="bonus",
-                )
-            ],
-            [
+                ),
                 _button(
                     text="پشتیبانی",
                     emoji="☎️",
                     callback_data="support",
-                )
+                ),
             ],
             [
                 _button(
                     text="ثبت‌نام در صرافی",
                     emoji="🎩",
-                    callback_data="register",
+                    url=REGISTER_LINK,
+                    style="success",
                 )
             ],
         ]

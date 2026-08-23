@@ -76,13 +76,26 @@ class CustomEmojiMiddlewareTest(unittest.IsolatedAsyncioTestCase):
 
 class CustomEmojiKeyboardTest(unittest.TestCase):
     def test_user_keyboard_uses_custom_icons(self):
+        keyboard = main_menu()
         buttons = [
             button
-            for row in main_menu().inline_keyboard
+            for row in keyboard.inline_keyboard
             for button in row
         ]
 
         self.assertEqual(len(buttons), 5)
+        self.assertEqual(
+            [len(row) for row in keyboard.inline_keyboard],
+            [1, 1, 2, 1],
+        )
+        self.assertEqual(buttons[0].text, "عضویت")
+        self.assertEqual(buttons[0].style, "success")
+        self.assertEqual(buttons[1].style, "success")
+        self.assertIsNone(buttons[2].style)
+        self.assertIsNone(buttons[3].style)
+        self.assertEqual(buttons[4].style, "success")
+        self.assertIsNotNone(buttons[4].url)
+        self.assertIsNone(buttons[4].callback_data)
         self.assertTrue(
             all(button.icon_custom_emoji_id for button in buttons)
         )

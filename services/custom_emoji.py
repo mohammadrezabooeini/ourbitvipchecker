@@ -85,6 +85,18 @@ def build_custom_emoji_entities(text: str) -> list[MessageEntity]:
     return entities
 
 
+def build_bold_entity(text: str, value: str) -> MessageEntity:
+    index = text.rfind(value)
+    if index < 0:
+        raise ValueError("Bold value was not found in text.")
+
+    return MessageEntity(
+        type="bold",
+        offset=_utf16_length(text[:index]),
+        length=_utf16_length(value),
+    )
+
+
 def start_custom_emoji_entity() -> MessageEntity:
     return MessageEntity(
         type="custom_emoji",

@@ -28,6 +28,9 @@ from services.channel import (
 )
 from services.custom_emoji import (
     START_CUSTOM_EMOJI_FALLBACK,
+    build_bold_entity,
+    build_custom_emoji_entities,
+    ensure_rtl,
     start_custom_emoji_entity,
 )
 from services.ourbit_api import ourbit, validate_uid
@@ -65,13 +68,20 @@ async def _send_success(
     if is_warning_balance(balance, MIN_BALANCE, WARNING_LIMIT):
         warning_text = msg.WARNING_TEXT.format(min_balance=MIN_BALANCE)
 
-    await message.answer(
+    text = ensure_rtl(
         msg.REGISTRATION_SUCCESS.format(
             uid=uid,
             balance=balance,
             warning_text=warning_text,
             invite_link=invite_link,
         )
+    )
+    entities = build_custom_emoji_entities(text)
+    entities.append(build_bold_entity(text, invite_link))
+
+    await message.answer(
+        text,
+        entities=entities,
     )
 
 

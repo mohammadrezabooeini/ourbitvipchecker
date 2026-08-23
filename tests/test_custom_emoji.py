@@ -7,6 +7,7 @@ from services.custom_emoji import (
     CUSTOM_EMOJI_IDS,
     START_CUSTOM_EMOJI_ID,
     CustomEmojiMiddleware,
+    build_bold_entity,
     build_custom_emoji_entities,
     ensure_rtl,
     start_custom_emoji_entity,
@@ -46,6 +47,22 @@ class CustomEmojiEntityTest(unittest.TestCase):
                 "5237704680372447424",
                 "5238044171767393675",
             ],
+        )
+
+    def test_invite_link_can_be_bolded(self):
+        text = ensure_rtl(
+            "🔗 لینک ورود VIP\nhttps://t.me/+ExampleInvite"
+        )
+        entity = build_bold_entity(
+            text,
+            "https://t.me/+ExampleInvite",
+        )
+
+        self.assertEqual(entity.type, "bold")
+        self.assertGreater(entity.offset, 0)
+        self.assertEqual(
+            entity.length,
+            len("https://t.me/+ExampleInvite"),
         )
 
     def test_every_nonempty_line_is_right_to_left(self):

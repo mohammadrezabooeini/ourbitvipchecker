@@ -1,0 +1,111 @@
+import unittest
+
+from aiogram.methods import SendMessage
+
+from bot.keyboards import admin_menu, main_menu
+from services.custom_emoji import (
+    CUSTOM_EMOJI_IDS,
+    START_CUSTOM_EMOJI_ID,
+    CustomEmojiMiddleware,
+    build_custom_emoji_entities,
+    start_custom_emoji_entity,
+)
+
+
+class CustomEmojiEntityTest(unittest.TestCase):
+    def test_entities_use_utf16_offsets_and_lengths(self):
+        entities = build_custom_emoji_entities("a👋b⚠️✅")
+
+        self.assertEqual(len(entities), 3)
+        self.assertEqual(
+            [
+                (
+                    entity.offset,
+                    entity.length,
+                    entity.custom_emoji_id,
+                )
+                for entity in entities
+            ],
+            [
+                (1, 2, CUSTOM_EMOJI_IDS["👋"]),
+                (4, 2, CUSTOM_EMOJI_IDS["⚠️"]),
+                (6, 1, CUSTOM_EMOJI_IDS["✅"]),
+            ],
+        )
+
+    def test_uid_emoji_without_id_is_untouched(self):
+        self.assertEqual(build_custom_emoji_entities("🆔 UID"), [])
+
+    def test_start_emoji_uses_requested_id(self):
+        entity = start_custom_emoji_entity()
+        self.assertEqual(entity.offset, 0)
+        self.assertEqual(entity.length, 1)
+        self.assertEqual(entity.custom_emoji_id, START_CUSTOM_EMOJI_ID)
+
+
+class CustomEmojiMiddlewareTest(unittest.IsolatedAsyncioTestCase):
+    async def test_outgoing_message_receives_custom_entities(self):
+        method = SendMessage(chat_id=1, text="✅ انجام شد")
+        middleware = CustomEmojiMiddleware()
+
+        async def make_request(bot, outgoing_method):
+            return outgoing_method
+
+        result = await middleware(make_request, None, method)
+        self.assertEqual(len(result.entities), 1)
+        self.assertEqual(
+            result.entities[0].custom_emoji_id,
+            CUSTOM_EMOJI_IDS["✅"],
+        )
+
+    async def test_existing_entities_are_preserved(self):
+        start_entity = start_custom_emoji_entity()
+        method = SendMessage(
+            chat_id=1,
+            text="⭐",
+            entities=[start_entity],
+        )
+        middleware = CustomEmojiMiddleware()
+
+        async def make_request(bot, outgoing_method):
+            return outgoing_method
+
+        result = await middleware(make_request, None, method)
+        self.assertEqual(result.entities, [start_entity])
+
+
+class CustomEmojiKeyboardTest(unittest.TestCase):
+    def test_user_keyboard_uses_custom_icons(self):
+        buttons = [
+            button
+            for row in main_menu().inline_keyboard
+            for button in row
+        ]
+
+        self.assertEqual(len(buttons), 5)
+        self.assertTrue(
+            all(button.icon_custom_emoji_id for button in buttons)
+        )
+        self.assertTrue(
+            all(
+                emoji not in button.text
+                for button in buttons
+                for emoji in CUSTOM_EMOJI_IDS
+            )
+        )
+
+    def test_admin_keyboard_uses_custom_icons(self):
+        buttons = [
+            button
+            for row in admin_menu().inline_keyboard
+            for button in row
+        ]
+
+        self.assertEqual(len(buttons), 9)
+        self.assertTrue(
+            all(button.icon_custom_emoji_id for button in buttons)
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

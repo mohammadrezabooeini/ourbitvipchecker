@@ -3,6 +3,20 @@ from aiogram.types import (
     InlineKeyboardButton,
 )
 
+from services.custom_emoji import CUSTOM_EMOJI_IDS
+
+
+def _button(
+    text: str,
+    emoji: str,
+    callback_data: str,
+) -> InlineKeyboardButton:
+    return InlineKeyboardButton(
+        text=text,
+        callback_data=callback_data,
+        icon_custom_emoji_id=CUSTOM_EMOJI_IDS[emoji],
+    )
+
 
 def main_menu() -> InlineKeyboardMarkup:
     """ساخت منوی اصلی ربات."""
@@ -10,32 +24,37 @@ def main_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(
-                    text="⭐ عضویت رایگان VIP",
+                _button(
+                    text="عضویت رایگان VIP",
+                    emoji="⭐",
                     callback_data="join_vip",
                 )
             ],
             [
-                InlineKeyboardButton(
-                    text="👤 وضعیت حساب",
+                _button(
+                    text="وضعیت حساب",
+                    emoji="👤",
                     callback_data="status",
                 )
             ],
             [
-                InlineKeyboardButton(
-                    text="🎁 بونس",
+                _button(
+                    text="بونس",
+                    emoji="🎁",
                     callback_data="bonus",
                 )
             ],
             [
-                InlineKeyboardButton(
-                    text="☎️ پشتیبانی",
+                _button(
+                    text="پشتیبانی",
+                    emoji="☎️",
                     callback_data="support",
                 )
             ],
             [
-                InlineKeyboardButton(
-                    text="🎩 ثبت‌نام در صرافی",
+                _button(
+                    text="ثبت‌نام در صرافی",
+                    emoji="🎩",
                     callback_data="register",
                 )
             ],
@@ -47,48 +66,57 @@ def admin_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(
-                    text="📊 آمار ربات",
+                _button(
+                    text="آمار ربات",
+                    emoji="📊",
                     callback_data="admin:stats",
                 ),
-                InlineKeyboardButton(
-                    text="🔄 چک لحظه‌ای VIPها",
+                _button(
+                    text="چک لحظه‌ای VIPها",
+                    emoji="🔄",
                     callback_data="admin:refresh",
                 ),
             ],
             [
-                InlineKeyboardButton(
-                    text="🔎 جستجوی کاربر",
+                _button(
+                    text="جستجوی کاربر",
+                    emoji="🔎",
                     callback_data="admin:search",
                 ),
-                InlineKeyboardButton(
-                    text="📣 پیام همگانی",
+                _button(
+                    text="پیام همگانی",
+                    emoji="📣",
                     callback_data="admin:broadcast",
                 ),
             ],
             [
-                InlineKeyboardButton(
-                    text="➕ افزودن VIP",
+                _button(
+                    text="افزودن VIP",
+                    emoji="➕",
                     callback_data="admin:add",
                 ),
-                InlineKeyboardButton(
-                    text="➖ حذف VIP",
+                _button(
+                    text="حذف VIP",
+                    emoji="➖",
                     callback_data="admin:remove",
                 ),
             ],
             [
-                InlineKeyboardButton(
-                    text="📥 خروجی Excel",
+                _button(
+                    text="خروجی Excel",
+                    emoji="📥",
                     callback_data="admin:export",
                 ),
-                InlineKeyboardButton(
-                    text="📈 حجم معاملات",
+                _button(
+                    text="حجم معاملات",
+                    emoji="📈",
                     callback_data="admin:volume",
                 )
             ],
             [
-                InlineKeyboardButton(
-                    text="👤 منوی کاربری",
+                _button(
+                    text="منوی کاربری",
+                    emoji="👤",
                     callback_data="admin:user_menu",
                 )
             ],
@@ -100,8 +128,9 @@ def admin_back_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(
-                    text="⬅️ بازگشت به پنل ادمین",
+                _button(
+                    text="بازگشت به پنل ادمین",
+                    emoji="⬅️",
                     callback_data="admin:back",
                 )
             ]
@@ -113,12 +142,14 @@ def broadcast_confirmation_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(
-                    text="✅ ارسال",
+                _button(
+                    text="ارسال",
+                    emoji="✅",
                     callback_data="admin:broadcast:confirm",
                 ),
-                InlineKeyboardButton(
-                    text="❌ لغو",
+                _button(
+                    text="لغو",
+                    emoji="❌",
                     callback_data="admin:broadcast:cancel",
                 ),
             ]
@@ -130,12 +161,14 @@ def remove_confirmation_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(
-                    text="✅ اخراج و غیرفعال‌سازی",
+                _button(
+                    text="اخراج و غیرفعال‌سازی",
+                    emoji="✅",
                     callback_data="admin:remove:confirm",
                 ),
-                InlineKeyboardButton(
-                    text="❌ لغو",
+                _button(
+                    text="لغو",
+                    emoji="❌",
                     callback_data="admin:remove:cancel",
                 ),
             ]

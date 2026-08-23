@@ -26,6 +26,10 @@ from services.channel import (
     is_member,
     revoke_invite_link,
 )
+from services.custom_emoji import (
+    START_CUSTOM_EMOJI_FALLBACK,
+    start_custom_emoji_entity,
+)
 from services.ourbit_api import ourbit, validate_uid
 from services.vip_rules import is_insufficient_balance, is_warning_balance
 
@@ -75,6 +79,10 @@ async def _send_success(
 async def start(message: Message, state: FSMContext) -> None:
     await state.clear()
     try:
+        await message.answer(
+            START_CUSTOM_EMOJI_FALLBACK,
+            entities=[start_custom_emoji_entity()],
+        )
         admin = is_admin(
             message.from_user.id if message.from_user else None
         )

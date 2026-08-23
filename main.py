@@ -9,6 +9,7 @@ from config import BOT_TOKEN, logger
 from database.database import db
 from services.channel import check_bot_permissions
 from services.checker import start_scheduler, stop_scheduler
+from services.custom_emoji import CustomEmojiMiddleware
 from services.ourbit_api import ourbit
 
 
@@ -16,6 +17,7 @@ async def main() -> None:
     await db.init()
 
     bot = Bot(token=BOT_TOKEN)
+    bot.session.middleware(CustomEmojiMiddleware())
     dp = Dispatcher()
     dp.update.outer_middleware(UserTrackingMiddleware())
     dp.include_router(admin_router)

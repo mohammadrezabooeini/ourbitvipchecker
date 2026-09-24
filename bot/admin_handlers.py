@@ -25,7 +25,7 @@ from services.channel import (
 )
 from services.admin import broadcast_copy, refresh_all_vip_balances
 from services.excel_export import build_vip_excel
-from services.ourbit_api import ourbit, validate_uid
+from services.yubit_api import validate_uid, yubit
 from services.trading_report import (
     format_decimal,
     get_trading_report,
@@ -226,7 +226,7 @@ async def admin_search_result(
             await state.clear()
             return
 
-        live_balance = await ourbit.get_balance(user["ourbit_uid"])
+        live_balance = await yubit.get_balance(user["yubit_uid"])
         if live_balance is not None:
             await db.update_balance(
                 user["telegram_id"],
@@ -241,7 +241,7 @@ async def admin_search_result(
                     f"@{user['username']}" if user["username"] else "-"
                 ),
                 first_name=_value(user, "first_name"),
-                uid=user["ourbit_uid"],
+                uid=user["yubit_uid"],
                 status=user["vip_status"],
                 stored_balance=user["balance"],
                 live_balance=(
@@ -322,7 +322,7 @@ async def admin_add_user(
                 await message.answer(msg.ADMIN_REMOVE_FAILED)
                 return
 
-        validation = await ourbit.validate_user(uid)
+        validation = await yubit.validate_user(uid)
         if not validation["success"]:
             await message.answer(msg.VALIDATION_FAILED)
             return
@@ -342,7 +342,7 @@ async def admin_add_user(
             telegram_id=telegram_id,
             username=profile["username"],
             first_name=profile["first_name"],
-            ourbit_uid=uid,
+            yubit_uid=uid,
             balance=balance,
             invite_link=invite_link,
         )
@@ -433,7 +433,7 @@ async def admin_remove_preview(
             username=(
                 f"@{user['username']}" if user["username"] else "-"
             ),
-            uid=user["ourbit_uid"],
+            uid=user["yubit_uid"],
             status=user["vip_status"],
             balance=user["balance"],
         ),
@@ -572,7 +572,7 @@ async def admin_volume_user(
         await state.clear()
         return
 
-    await state.update_data(volume_uid=user["ourbit_uid"])
+    await state.update_data(volume_uid=user["yubit_uid"])
     await state.set_state(AdminStates.waiting_volume_dates)
     await message.answer(
         msg.ADMIN_VOLUME_DATE_PROMPT,

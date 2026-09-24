@@ -37,7 +37,7 @@ class Database:
                         telegram_id   INTEGER PRIMARY KEY,
                         username      TEXT,
                         first_name    TEXT,
-                        ourbit_uid    TEXT UNIQUE,
+                        yubit_uid     TEXT UNIQUE,
                         vip_status    TEXT NOT NULL DEFAULT 'inactive',
                         balance       REAL DEFAULT 0,
                         invite_link   TEXT,
@@ -72,7 +72,7 @@ class Database:
         telegram_id: int,
         username: Optional[str],
         first_name: Optional[str],
-        ourbit_uid: str,
+        yubit_uid: str,
         balance: float,
         invite_link: str,
     ) -> str:
@@ -97,9 +97,9 @@ class Database:
                     """
                     SELECT telegram_id
                     FROM users
-                    WHERE ourbit_uid=?
+                    WHERE yubit_uid=?
                     """,
-                    (ourbit_uid,),
+                    (yubit_uid,),
                 )
                 uid_owner = await uid_cursor.fetchone()
 
@@ -118,7 +118,7 @@ class Database:
                         SET
                             username=?,
                             first_name=?,
-                            ourbit_uid=?,
+                            yubit_uid=?,
                             vip_status='active',
                             balance=?,
                             invite_link=?,
@@ -131,7 +131,7 @@ class Database:
                         (
                             username,
                             first_name,
-                            ourbit_uid,
+                            yubit_uid,
                             balance,
                             invite_link,
                             telegram_id,
@@ -141,7 +141,7 @@ class Database:
                     logger.info(
                         "User reactivated: telegram_id=%s, uid=%s",
                         telegram_id,
-                        ourbit_uid,
+                        yubit_uid,
                     )
                     return "reactivated"
 
@@ -151,7 +151,7 @@ class Database:
                         telegram_id,
                         username,
                         first_name,
-                        ourbit_uid,
+                        yubit_uid,
                         vip_status,
                         balance,
                         invite_link,
@@ -165,7 +165,7 @@ class Database:
                         telegram_id,
                         username,
                         first_name,
-                        ourbit_uid,
+                        yubit_uid,
                         balance,
                         invite_link,
                     ),
@@ -175,14 +175,14 @@ class Database:
             logger.info(
                 "User added: telegram_id=%s, uid=%s",
                 telegram_id,
-                ourbit_uid,
+                yubit_uid,
             )
             return "created"
 
         except sqlite3.IntegrityError:
             logger.warning(
                 "UID already taken during register: uid=%s telegram_id=%s",
-                ourbit_uid,
+                yubit_uid,
                 telegram_id,
             )
             return "uid_taken"
@@ -215,7 +215,7 @@ class Database:
             async with self._connect() as conn:
                 await self._prepare(conn)
                 cursor = await conn.execute(
-                    "SELECT * FROM users WHERE ourbit_uid=?",
+                    "SELECT * FROM users WHERE yubit_uid=?",
                     (uid,),
                 )
                 return await cursor.fetchone()
@@ -460,7 +460,7 @@ class Database:
             raise
 
     async def find_user(self, identifier: str) -> Optional[UserRow]:
-        """Find a VIP record by Telegram ID or Ourbit UID."""
+        """Find a VIP record by Telegram ID or Yubit UID."""
         try:
             async with self._connect() as conn:
                 await self._prepare(conn)
@@ -469,9 +469,9 @@ class Database:
                     SELECT *
                     FROM users
                     WHERE CAST(telegram_id AS TEXT)=?
-                       OR ourbit_uid=?
+                       OR yubit_uid=?
                     ORDER BY
-                        CASE WHEN ourbit_uid=? THEN 0 ELSE 1 END
+                        CASE WHEN yubit_uid=? THEN 0 ELSE 1 END
                     LIMIT 1
                     """,
                     (identifier, identifier, identifier),

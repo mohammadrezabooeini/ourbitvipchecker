@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from typing import Any, Dict, Iterable
 
-from services.ourbit_api import OurbitAPI, ourbit
+from services.yubit_api import YubitAPI, yubit
 
 
 @dataclass(frozen=True)
@@ -47,6 +47,8 @@ def parse_date_range(value: str) -> DateRange:
 
     if end_day < start:
         raise ValueError("End date cannot be before start date.")
+    if (end_day - start).days >= 180:
+        raise ValueError("Date range cannot exceed 180 days.")
 
     end = end_day + timedelta(days=1) - timedelta(milliseconds=1)
     return DateRange(
@@ -78,7 +80,7 @@ def _group_amounts(rows: Iterable[Dict[str, Any]]) -> Dict[str, Decimal]:
 async def get_trading_report(
     uid: str,
     date_range: DateRange,
-    api: OurbitAPI = ourbit,
+    api: YubitAPI = yubit,
 ) -> TradingReport:
     spot_rows, futures_rows, commission_rows = await asyncio.gather(
         api.get_trading_volume(
@@ -104,10 +106,11 @@ async def get_trading_report(
         spot_by_symbol=_group_amounts(spot_rows),
         futures_by_symbol=_group_amounts(futures_rows),
     )
+    report.effective_volume_usdt = (
+        sum(report.spot_by_symbol.values(), Decimal("0"))
+        + report.futures_total_usdt
+    )
     for row in commission_rows:
-        report.effective_volume_usdt += _decimal(
-            row.get("tradingVol")
-        )
         report.commission_usdt += _decimal(
             row.get("commissionAmount")
         )

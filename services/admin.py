@@ -9,7 +9,7 @@ from aiogram.exceptions import (
 )
 
 from database.database import Database, db
-from services.ourbit_api import OurbitAPI, ourbit
+from services.yubit_api import YubitAPI, yubit
 from services.telegram_retry import with_telegram_retry
 
 
@@ -31,7 +31,7 @@ class BroadcastResult:
 async def refresh_all_vip_balances(
     minimum_balance: float,
     database: Database = db,
-    api: OurbitAPI = ourbit,
+    api: YubitAPI = yubit,
     concurrency: int = 5,
 ) -> BalanceRefreshResult:
     users = await database.get_all_active_users()
@@ -40,12 +40,12 @@ async def refresh_all_vip_balances(
 
     async def refresh(user: Any) -> Dict[str, Any]:
         async with semaphore:
-            balance = await api.get_balance(user["ourbit_uid"])
+            balance = await api.get_balance(user["yubit_uid"])
             if balance is None:
                 return {
                     "ok": False,
                     "telegram_id": user["telegram_id"],
-                    "uid": user["ourbit_uid"],
+                    "uid": user["yubit_uid"],
                     "first_name": user["first_name"],
                 }
 
@@ -57,7 +57,7 @@ async def refresh_all_vip_balances(
             return {
                 "ok": True,
                 "telegram_id": user["telegram_id"],
-                "uid": user["ourbit_uid"],
+                "uid": user["yubit_uid"],
                 "first_name": user["first_name"],
                 "balance": balance,
                 "below_minimum": balance < minimum_balance,

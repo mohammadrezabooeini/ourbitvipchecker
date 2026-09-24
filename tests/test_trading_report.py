@@ -82,7 +82,7 @@ class TradingReportTest(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(
             report.effective_volume_usdt,
-            Decimal("110"),
+            Decimal("117.0"),
         )
         self.assertEqual(
             report.commission_usdt,

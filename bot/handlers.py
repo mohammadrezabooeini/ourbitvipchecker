@@ -15,6 +15,7 @@ from config import (
     MIN_BALANCE,
     REGISTER_LINK,
     SUPPORT_USERNAME,
+    UID_MAX_LENGTH,
     UID_MIN_LENGTH,
     WARNING_LIMIT,
     logger,
@@ -33,7 +34,7 @@ from services.custom_emoji import (
     ensure_rtl,
     start_custom_emoji_entity,
 )
-from services.ourbit_api import ourbit, validate_uid
+from services.yubit_api import validate_uid, yubit
 from services.vip_rules import is_insufficient_balance, is_warning_balance
 
 router = Router()
@@ -197,7 +198,8 @@ async def receive_uid(message: Message, state: FSMContext) -> None:
     if not validate_uid(uid):
         await message.answer(
             msg.UID_INVALID.format(
-                length=UID_MIN_LENGTH,
+                min_length=UID_MIN_LENGTH,
+                max_length=UID_MAX_LENGTH,
             )
         )
         return
@@ -229,7 +231,7 @@ async def _register_uid(
         return
 
     try:
-        result = await ourbit.validate_user(uid)
+        result = await yubit.validate_user(uid)
     except Exception:
         logger.exception("API validation error")
         await message.answer(msg.ERROR_API)
@@ -272,7 +274,7 @@ async def _register_uid(
             telegram_id=telegram_id,
             username=message.from_user.username,
             first_name=message.from_user.first_name,
-            ourbit_uid=uid,
+            yubit_uid=uid,
             balance=balance,
             invite_link=invite_link,
         )
@@ -315,7 +317,7 @@ async def account_status(call: CallbackQuery) -> None:
             await call.message.answer(msg.NOT_VIP)
             return
 
-        live_balance = await ourbit.get_balance(user["ourbit_uid"])
+        live_balance = await yubit.get_balance(user["yubit_uid"])
         if live_balance is not None:
             await db.update_balance(
                 call.from_user.id,
@@ -325,7 +327,7 @@ async def account_status(call: CallbackQuery) -> None:
 
         await call.message.answer(
             msg.STATUS_INFO.format(
-                uid=user["ourbit_uid"],
+                uid=user["yubit_uid"],
                 balance=(
                     live_balance
                     if live_balance is not None

@@ -17,7 +17,7 @@ from config import (
 from constants import messages as msg
 from database.database import db
 from services.channel import remove_user, revoke_invite_link
-from services.ourbit_api import ourbit
+from services.yubit_api import yubit
 from services.telegram_retry import with_telegram_retry
 from services.vip_rules import (
     is_insufficient_balance,
@@ -74,14 +74,14 @@ async def weekly_check(bot: Bot) -> None:
 
     for user in users:
         telegram_id: int = user["telegram_id"]
-        uid: str = user["ourbit_uid"]
+        uid: str = user["yubit_uid"]
 
         try:
             if not needs_recheck(user["last_check"], CHECK_INTERVAL_DAYS):
                 skipped += 1
                 continue
 
-            balance: Optional[float] = await ourbit.get_balance(uid)
+            balance: Optional[float] = await yubit.get_balance(uid)
 
             if balance is None:
                 logger.warning(

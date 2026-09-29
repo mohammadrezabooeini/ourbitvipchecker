@@ -11,7 +11,7 @@ from services.admin import broadcast_copy, refresh_all_vip_balances
 from services.excel_export import VIP_EXPORT_HEADERS, build_vip_excel
 
 
-class FakeYubitAPI:
+class FakeOurbitAPI:
     def __init__(self, balances):
         self.balances = balances
 
@@ -60,7 +60,7 @@ class AdminDatabaseTest(unittest.IsolatedAsyncioTestCase):
             telegram_id=2,
             username="vip",
             first_name="VIP",
-            yubit_uid="12345678",
+            ourbit_uid="12345678",
             balance=25,
             invite_link="https://example.invalid/invite",
         )
@@ -74,7 +74,7 @@ class AdminDatabaseTest(unittest.IsolatedAsyncioTestCase):
         by_uid = await self.db.find_user("12345678")
         by_telegram = await self.db.find_user("2")
         self.assertEqual(by_uid["telegram_id"], 2)
-        self.assertEqual(by_telegram["yubit_uid"], "12345678")
+        self.assertEqual(by_telegram["ourbit_uid"], "12345678")
 
         recipients = await self.db.get_broadcast_user_ids()
         self.assertEqual(recipients, [1, 2])
@@ -91,7 +91,7 @@ class AdminDatabaseTest(unittest.IsolatedAsyncioTestCase):
             telegram_id=10,
             username=None,
             first_name="Low",
-            yubit_uid="11111111",
+            ourbit_uid="11111111",
             balance=20,
             invite_link="link-1",
         )
@@ -99,11 +99,11 @@ class AdminDatabaseTest(unittest.IsolatedAsyncioTestCase):
             telegram_id=20,
             username=None,
             first_name="Safe",
-            yubit_uid="22222222",
+            ourbit_uid="22222222",
             balance=20,
             invite_link="link-2",
         )
-        api = FakeYubitAPI(
+        api = FakeOurbitAPI(
             {
                 "11111111": 5.0,
                 "22222222": 15.0,
@@ -152,7 +152,7 @@ class AdminExcelExportTest(unittest.TestCase):
                 "username": "vip_user",
                 "first_name": "VIP",
                 "telegram_id": 123,
-                "yubit_uid": "12345678",
+                "ourbit_uid": "12345678",
                 "vip_status": "active",
                 "balance": 20.5,
                 "joined_at": "2026-08-18 10:00:00",

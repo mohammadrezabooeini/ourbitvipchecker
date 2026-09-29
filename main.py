@@ -10,7 +10,7 @@ from database.database import db
 from services.channel import check_bot_permissions
 from services.checker import start_scheduler, stop_scheduler
 from services.custom_emoji import CustomEmojiMiddleware
-from services.yubit_api import yubit
+from services.ourbit_api import ourbit
 
 
 async def main() -> None:
@@ -47,7 +47,7 @@ async def main() -> None:
         )
     finally:
         stop_scheduler()
-        await yubit.close()
+        await ourbit.close()
         await bot.session.close()
         logger.info("Bot stopped.")
 

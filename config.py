@@ -57,7 +57,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-logger = logging.getLogger("ubitvip")
+logger = logging.getLogger("ourbit_vip")
 
 # ──────────────────────────────
 # Telegram
@@ -102,27 +102,16 @@ def _env_admin_ids() -> frozenset[int]:
 ADMIN_IDS: frozenset[int] = _env_admin_ids()
 
 # ──────────────────────────────
-# Yubit Partner API
+# Ourbit API
 # ──────────────────────────────
 
-YUBIT_API_KEY: str = _require("YUBIT_API_KEY")
-YUBIT_SECRET_KEY: str = _require("YUBIT_SECRET_KEY")
+OURBIT_API_KEY: str = _require("OURBIT_API_KEY")
+OURBIT_SECRET_KEY: str = _require("OURBIT_SECRET_KEY")
 
-YUBIT_BASE_URL: str = os.getenv(
-    "YUBIT_BASE_URL",
-    "https://openapi.yubit.com",
+OURBIT_BASE_URL: str = os.getenv(
+    "OURBIT_BASE_URL",
+    "https://futures.ourbit.com",
 ).rstrip("/")
-YUBIT_RECV_WINDOW: int = _env_int(
-    "YUBIT_RECV_WINDOW",
-    5000,
-    minimum=1,
-)
-if YUBIT_RECV_WINDOW > 60000:
-    print(
-        "YUBIT_RECV_WINDOW must be <= 60000.",
-        file=sys.stderr,
-    )
-    raise SystemExit(1)
 
 # ──────────────────────────────
 # VIP Settings
@@ -170,7 +159,7 @@ SUPPORT_USERNAME: str = os.getenv(
 
 REGISTER_LINK: str = os.getenv(
     "REGISTER_LINK",
-    "https://www.yubit.com/",
+    "https://ourbit.com/",
 )
 
 BONUS_TEXT: str = os.getenv(

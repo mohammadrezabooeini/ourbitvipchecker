@@ -23,37 +23,52 @@ def _button(
     )
 
 
-def main_menu() -> InlineKeyboardMarkup:
+def main_menu(trial_enabled: bool = False) -> InlineKeyboardMarkup:
     """ساخت منوی اصلی ربات."""
 
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
+    rows = [
+        [
+            _button(
+                text="عضویت رایگان VIP",
+                emoji="⭐",
+                callback_data="join_vip",
+                style="success",
+            )
+        ],
+        [
+            _button(
+                text="وضعیت حساب",
+                emoji="👤",
+                callback_data="status",
+                style="success",
+            )
+        ],
+    ]
+    if trial_enabled:
+        rows.append(
             [
                 _button(
-                    text="عضویت",
-                    emoji="⭐",
-                    callback_data="join_vip",
-                    style="success",
-                )
-            ],
-            [
-                _button(
-                    text="وضعیت حساب",
-                    emoji="👤",
-                    callback_data="status",
-                    style="success",
-                )
-            ],
-            [
-                _button(
-                    text="بونس",
+                    text="VIP آزمایشی ۱ ساعته",
                     emoji="🎁",
-                    callback_data="bonus",
+                    callback_data="trial_vip",
+                    style="success",
+                )
+            ]
+        )
+    rows.extend(
+        [
+            [
+                _button(
+                    text="بونوس",
+                    emoji="🎁",
+                    callback_data="campaign",
+                    style="primary",
                 ),
                 _button(
-                    text="پشتیبانی",
+                    text="ارتباط با پشتیبانی",
                     emoji="☎️",
                     callback_data="support",
+                    style="primary",
                 ),
             ],
             [
@@ -61,10 +76,13 @@ def main_menu() -> InlineKeyboardMarkup:
                     text="ثبت‌نام در صرافی",
                     emoji="🎩",
                     url=REGISTER_LINK,
-                    style="success",
+                    style="danger",
                 )
             ],
         ]
+    )
+    return InlineKeyboardMarkup(
+        inline_keyboard=rows
     )
 
 
@@ -109,15 +127,46 @@ def admin_menu() -> InlineKeyboardMarkup:
             ],
             [
                 _button(
+                    text="ریماندر VIP",
+                    emoji="📣",
+                    callback_data="admin:vip_reminder",
+                ),
+            ],
+            [
+                _button(
+                    text="تنظیم کمپین",
+                    emoji="🎁",
+                    callback_data="admin:campaign",
+                ),
+                _button(
+                    text="لینک یکبار مصرف",
+                    emoji="🔗",
+                    callback_data="admin:invite",
+                ),
+            ],
+            [
+                _button(
+                    text="VIP تستی",
+                    emoji="🎁",
+                    callback_data="admin:trial",
+                ),
+                _button(
+                    text="تنظیم حداقل ورودی",
+                    emoji="💰",
+                    callback_data="admin:minimum",
+                ),
+            ],
+            [
+                _button(
                     text="خروجی Excel",
                     emoji="📥",
                     callback_data="admin:export",
                 ),
                 _button(
-                    text="حجم معاملات",
+                    text="گزارش کامل حجم و کمیسیون",
                     emoji="📈",
-                    callback_data="admin:volume",
-                )
+                    callback_data="admin:report",
+                ),
             ],
             [
                 _button(

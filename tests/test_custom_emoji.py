@@ -134,12 +134,12 @@ class CustomEmojiKeyboardTest(unittest.TestCase):
             [len(row) for row in keyboard.inline_keyboard],
             [1, 1, 2, 1],
         )
-        self.assertEqual(buttons[0].text, "عضویت")
+        self.assertEqual(buttons[0].text, "عضویت رایگان VIP")
         self.assertEqual(buttons[0].style, "success")
         self.assertEqual(buttons[1].style, "success")
-        self.assertIsNone(buttons[2].style)
-        self.assertIsNone(buttons[3].style)
-        self.assertEqual(buttons[4].style, "success")
+        self.assertEqual(buttons[2].style, "primary")
+        self.assertEqual(buttons[3].style, "primary")
+        self.assertEqual(buttons[4].style, "danger")
         self.assertIsNotNone(buttons[4].url)
         self.assertIsNone(buttons[4].callback_data)
         self.assertTrue(
@@ -153,6 +153,17 @@ class CustomEmojiKeyboardTest(unittest.TestCase):
             )
         )
 
+        trial_buttons = [
+            button
+            for row in main_menu(trial_enabled=True).inline_keyboard
+            for button in row
+        ]
+        self.assertEqual(len(trial_buttons), 6)
+        self.assertEqual(
+            trial_buttons[2].callback_data,
+            "trial_vip",
+        )
+
     def test_admin_keyboard_uses_custom_icons(self):
         buttons = [
             button
@@ -160,7 +171,7 @@ class CustomEmojiKeyboardTest(unittest.TestCase):
             for button in row
         ]
 
-        self.assertEqual(len(buttons), 9)
+        self.assertEqual(len(buttons), 14)
         self.assertTrue(
             all(button.icon_custom_emoji_id for button in buttons)
         )

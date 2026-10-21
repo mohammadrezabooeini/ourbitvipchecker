@@ -2,7 +2,7 @@ import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
-from typing import Any, Dict, Iterable
+from typing import Any, Dict, Iterable, Optional
 
 from services.ourbit_api import OurbitAPI, ourbit
 
@@ -21,6 +21,13 @@ class TradingReport:
     futures_by_symbol: Dict[str, Decimal] = field(default_factory=dict)
     effective_volume_usdt: Decimal = Decimal("0")
     commission_usdt: Decimal = Decimal("0")
+
+    @property
+    def spot_total_usdt(self) -> Decimal:
+        return sum(
+            self.spot_by_symbol.values(),
+            Decimal("0"),
+        )
 
     @property
     def futures_total_usdt(self) -> Decimal:
@@ -112,6 +119,74 @@ async def get_trading_report(
             row.get("commissionAmount")
         )
     return report
+
+
+def standard_report_ranges(
+    now: Optional[datetime] = None,
+) -> Dict[str, DateRange]:
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    today = current.replace(hour=0, minute=0, second=0, microsecond=0)
+    end_time = int(current.timestamp() * 1000)
+
+    def build(start: datetime) -> DateRange:
+        return DateRange(
+            start_time=int(start.timestamp() * 1000),
+            end_time=end_time,
+            start_label=start.strftime("%Y-%m-%d"),
+            end_label=current.strftime("%Y-%m-%d"),
+        )
+
+    return {
+        "today": build(today),
+        "week": build(today - timedelta(days=6)),
+        "month": build(today.replace(day=1)),
+    }
+
+
+def _merge_reports(reports: Iterable[TradingReport]) -> TradingReport:
+    merged = TradingReport()
+    for report in reports:
+        for symbol, amount in report.spot_by_symbol.items():
+            merged.spot_by_symbol[symbol] = (
+                merged.spot_by_symbol.get(symbol, Decimal("0"))
+                + amount
+            )
+        for symbol, amount in report.futures_by_symbol.items():
+            merged.futures_by_symbol[symbol] = (
+                merged.futures_by_symbol.get(symbol, Decimal("0"))
+                + amount
+            )
+        merged.effective_volume_usdt += report.effective_volume_usdt
+        merged.commission_usdt += report.commission_usdt
+    return merged
+
+
+async def get_standard_reports(
+    uids: Optional[Iterable[str]] = None,
+    api: OurbitAPI = ourbit,
+) -> Dict[str, TradingReport]:
+    unique_uids = [
+        str(uid)
+        for uid in dict.fromkeys(uids or [])
+        if uid
+    ]
+    ranges = standard_report_ranges()
+    result: Dict[str, TradingReport] = {}
+    for key, date_range in ranges.items():
+        if not unique_uids:
+            result[key] = TradingReport()
+            continue
+        reports = await asyncio.gather(
+            *(
+                get_trading_report(uid, date_range, api=api)
+                for uid in unique_uids
+            )
+        )
+        result[key] = _merge_reports(reports)
+    return result
 
 
 def format_decimal(value: Decimal) -> str:

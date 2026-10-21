@@ -118,9 +118,6 @@ OURBIT_BASE_URL: str = os.getenv(
 # ──────────────────────────────
 
 MIN_BALANCE: int = _env_int("MIN_BALANCE", 50)
-WARNING_RANGE: int = _env_int("WARNING_RANGE", 15)
-
-WARNING_LIMIT: int = MIN_BALANCE + WARNING_RANGE
 
 # ──────────────────────────────
 # UID Validation
@@ -152,19 +149,9 @@ INVITE_EXPIRE_SECONDS: int = CHECK_INTERVAL_DAYS * 24 * 60 * 60
 # External Links & Support
 # ──────────────────────────────
 
-SUPPORT_USERNAME: str = os.getenv(
-    "SUPPORT_USERNAME",
-    "SupportUsername",
-)
-
 REGISTER_LINK: str = os.getenv(
     "REGISTER_LINK",
     "https://ourbit.com/",
-)
-
-BONUS_TEXT: str = os.getenv(
-    "BONUS_TEXT",
-    "🎁 متن مربوط به بونس اینجا قرار می‌گیرد.",
 )
 
 # ──────────────────────────────
